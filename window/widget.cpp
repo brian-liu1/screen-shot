@@ -28,10 +28,8 @@ void Widget::initBoard()
     QPushButton * rect = new QPushButton();
     rect->setText("rect");
     m_layout->addWidget(shot_screen);
-    m_layout->addWidget(line);
-    m_layout->addWidget(rect);
     this->setLayout(m_layout);
-    this->setGeometry(100, 300, 480, 40);
+    this->setGeometry(100, 300, 40, 40);
 }
 
 void Widget::shotScreen()

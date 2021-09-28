@@ -13,7 +13,7 @@ public:
     void setToolType(int);
     void setColor(QColor &c);
     void setPenW(int w);
-
+    void setFont(QFont &font);
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *ev);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *ev);
@@ -31,6 +31,7 @@ private:
     QColor  m_color;
     int pen_w;
     QPointF m_oldPos;
+    QFont m_font;
 
 };
 

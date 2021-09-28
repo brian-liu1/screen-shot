@@ -13,6 +13,7 @@
 #include <QPushButton>
 #include <QDebug>
 #include <QUndoStack>
+#include <QComboBox>
 
 class Screen
 {
@@ -70,8 +71,14 @@ private:
     GraphicScene * m_scene;
     QVBoxLayout * layout;
     QColor m_color;
+    QFont m_font;
     int pen_w;
     QUndoStack* m_undoStack;
+    QPushButton * undo;
+    QPushButton * redo;
+    QPushButton * font;
+    QPushButton * color;
+    QComboBox *m_combox;
 
 protected:
     void contextMenuEvent(QContextMenuEvent *);
@@ -83,7 +90,7 @@ protected:
 
 private:
     void initView(void);
-    void setLayoutVisible(QVBoxLayout * layout, int row, bool bEnable);
+    void setLayoutVisible(int index);
 
 public slots:
     void saveScreen();
@@ -94,10 +101,12 @@ public slots:
     void addNewRect();
     void addNewText();
     void setColor();
+    void setFont();
     void redoAct();
     void undoAct();
     void itemMoved(QGraphicsItem * item, QPointF pos);
     void itemAdd(QGraphicsItem * item);
+    void sizeChange(int);
 };
 
 #endif // SCREENWIDGET_H

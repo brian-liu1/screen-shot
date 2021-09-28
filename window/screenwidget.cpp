@@ -11,6 +11,7 @@
 #include "qscreen.h"
 #include <QColorDialog>
 #include "mycommand.h"
+#include <QFontDialog>
 
 
 #define deskGeometry qApp->primaryScreen()->geometry()
@@ -351,6 +352,8 @@ void ScreenWidget::contextMenuEvent(QContextMenuEvent * ev)
         this->setCursor(Qt::ArrowCursor);
         menu->exec(cursor().pos());
     }
+    else
+        m_scene->setToolType(0);
 }
 
 void ScreenWidget::initView()
@@ -377,31 +380,54 @@ void ScreenWidget::initView()
     m_layout->setMargin(0);
     m_layout->setSpacing(0);
     QPushButton * line = new QPushButton();
-    line->setText("line");
+    QPixmap icon(":icon/line.png");
+    line->setFlat(true);
+    line->setIcon(icon);
+    line->setIconSize(QSize(40, 40));
     line->setFixedSize(40, 40);
     connect(line, &QPushButton::clicked, this, &ScreenWidget::addNewLine);
     QPushButton * rect = new QPushButton();
-    rect->setText("rect");
+    QPixmap icon1(":icon/rect.png");
+    rect->setFlat(true);
+    rect->setIcon(icon1);
+    rect->setIconSize(QSize(40, 40));
     rect->setFixedSize(40, 40);
     connect(rect, &QPushButton::clicked, this, &ScreenWidget::addNewRect);
     QPushButton * text = new QPushButton();
-    text->setText("text");
+    QPixmap icon2(":icon/text.png");
+    text->setFlat(true);
+    text->setIcon(icon2);
+    text->setIconSize(QSize(40, 40));
     text->setFixedSize(40, 40);
     connect(text, &QPushButton::clicked, this, &ScreenWidget::addNewText);
-    QPushButton * undo = new QPushButton();
-    undo->setText("undo");
+    undo = new QPushButton();
+    QPixmap icon3(":icon/undo.png");
+    undo->setFlat(true);
+    undo->setIcon(icon3);
+    undo->setIconSize(QSize(40, 40));
     undo->setFixedSize(40, 40);
     connect(undo, &QPushButton::clicked, this, &ScreenWidget::undoAct);
-    QPushButton * redo = new QPushButton();
-    redo->setText("redo");
+    undo->setDisabled(true);
+    redo = new QPushButton();
+    QPixmap icon4(":icon/redo.png");
+    redo->setFlat(true);
+    redo->setIcon(icon4);
+    redo->setIconSize(QSize(40, 40));
     redo->setFixedSize(40, 40);
     connect(redo, &QPushButton::clicked, this, &ScreenWidget::redoAct);
+    redo->setDisabled(true);
     QPushButton * save = new QPushButton();
-    save->setText("save");
+    QPixmap icon5(":icon/save.png");
+    save->setFlat(true);
+    save->setIcon(icon5);
+    save->setIconSize(QSize(40, 40));
     save->setFixedSize(40, 40);
     connect(save, &QPushButton::clicked, this, &ScreenWidget::saveScreen);
     QPushButton * quit = new QPushButton();
-    quit->setText("quit");
+    QPixmap icon6(":icon/close.png");
+    quit->setFlat(true);
+    quit->setIcon(icon6);
+    quit->setIconSize(QSize(40, 40));
     quit->setFixedSize(40, 40);
     connect(quit, &QPushButton::clicked, this, &ScreenWidget::close);
     QSpacerItem * space = new QSpacerItem(20, 40, QSizePolicy::Expanding);
@@ -417,29 +443,39 @@ void ScreenWidget::initView()
     m_tool->setMargin(0);
     m_tool->setSpacing(0);
     QSpacerItem * space1 = new QSpacerItem(20, 40, QSizePolicy::Expanding);
-    QPushButton * color = new QPushButton();
+    color = new QPushButton();
     QPalette pal = color->palette();
     pal.setColor(QPalette::Button, Qt::black);
     color->setPalette(pal);
     color->setAutoFillBackground(true);
     color->setFlat(true);
-    color->setText("color");
     color->setFixedSize(40, 40);
     connect(color, &QPushButton::clicked, this, &ScreenWidget::setColor);
-    QPushButton * size = new QPushButton();
-    size->setText("size");
-    size->setFixedSize(40, 40);
-    QPushButton * font = new QPushButton();
-    font->setText("font");
+    m_combox = new QComboBox();
+    QPixmap pen1(":icon/font.png");
+    m_combox->addItem(pen1, "1px", "1");
+    m_combox->addItem(pen1, "2px", "2");
+    m_combox->addItem(pen1, "3px", "3");
+    m_combox->addItem(pen1, "4px", "4");
+    m_combox->addItem(pen1, "5px", "5");
+    m_combox->addItem(pen1, "6px", "6");
+    connect(m_combox, SIGNAL(currentIndexChanged(int)),this, SLOT(sizeChange(int)));
+    m_combox->setFixedSize(60, 40);
+    font = new QPushButton();
+    QPixmap icon8(":icon/font.png");
+    font->setFlat(true);
+    font->setIcon(icon8);
+    font->setIconSize(QSize(40, 40));
     font->setFixedSize(40, 40);
+    connect(font, &QPushButton::clicked, this, &ScreenWidget::setFont);
     m_tool->addSpacerItem(space1);
     m_tool->addWidget(color);
-    m_tool->addWidget(size);
+    m_tool->addWidget(m_combox);
     m_tool->addWidget(font);
     layout->addWidget(m_view);
     layout->addItem(m_layout);
     layout->addItem(m_tool);
-    setLayoutVisible(layout, 2, false);
+    setLayoutVisible(0);
     QWidget * widget = new QWidget(this);
     widget->setAttribute(Qt::WA_TranslucentBackground, true);
     layout->setMargin(0);
@@ -451,44 +487,44 @@ void ScreenWidget::initView()
     widget->show();
 }
 
-void ScreenWidget::setLayoutVisible(QVBoxLayout * layout, int row, bool bEnable)
+void ScreenWidget::setLayoutVisible(int index)
 {
     if(layout == nullptr) return;
-    QHBoxLayout  * h_layout;
-    QLayoutItem * it = layout->itemAt(row);
-    if(it->layout() != nullptr)
+    if(index == 0)
     {
-        h_layout = qobject_cast<QHBoxLayout *>(it->layout());
-        for(int i = 0; i < h_layout->count(); i++)
-        {
-            it = h_layout->itemAt(i);
-            if(it->spacerItem() != nullptr)
-                continue;
-            if(bEnable)
-                it->widget()->show();
-            else {
-                it->widget()->hide();
-            }
-        }
+        color->hide();
+        m_combox->hide();
+        font->hide();
+    }
+    else if(index == 1){
+        color->show();
+        m_combox->show();
+        font->hide();
+    }
+    else if(index == 2)
+    {
+        color->show();
+        m_combox->hide();
+        font->show();
     }
     //QHBoxLayout h_layout = layout.
 }
 
 void ScreenWidget::addNewLine()
 {
-    setLayoutVisible(layout, 2, true);
+    setLayoutVisible(1);
     m_scene->setToolType(1);
 }
 
 void ScreenWidget::addNewRect()
 {
-    setLayoutVisible(layout, 2, true);
+    setLayoutVisible(1);
     m_scene->setToolType(2);
 }
 
 void ScreenWidget::addNewText()
 {
-    setLayoutVisible(layout, 2, true);
+    setLayoutVisible(2);
     m_scene->setToolType(3);
 }
 
@@ -504,22 +540,51 @@ void ScreenWidget::setColor()
     m_scene->setColor(color);
 }
 
+void ScreenWidget::setFont()
+{
+    bool ok;
+    QFont font = QFontDialog::getFont(&ok,this);
+    //如果单击 OK 按钮，那么让“字体对话框”按钮使用新字体
+    //如果单击 Cancel 按钮，那么输出信息
+    if(ok)
+        m_scene->setFont(font);
+}
+
 void ScreenWidget::redoAct()
 {
     m_undoStack->redo();//存放操作的栈
+    undo->setDisabled(false);
+    if(m_undoStack->index() == m_undoStack->count())
+        redo->setDisabled(true);
 }
 
 void ScreenWidget::undoAct()
 {
     m_undoStack->undo();//存放操作的栈
+    if(m_undoStack->index() == 0)
+        undo->setDisabled(true);
+    if(m_undoStack->index() < m_undoStack->count())
+        redo->setDisabled(false);
 }
 
 void ScreenWidget::itemAdd(QGraphicsItem * item)
 {
     m_undoStack->push(new addCommand(m_scene, item));
+    undo->setDisabled(false);
+    if(m_undoStack->index() == m_undoStack->count())
+        redo->setDisabled(true);
 }
 
 void ScreenWidget::itemMoved(QGraphicsItem * item, QPointF pos)
 {
     m_undoStack->push(new moveCommand(item, pos));
+    undo->setDisabled(false);
+    if(m_undoStack->index() == m_undoStack->count())
+        redo->setDisabled(true);
+}
+
+void ScreenWidget::sizeChange(int)
+{
+    int i= m_combox->itemData(m_combox->currentIndex()).toInt();
+    m_scene->setPenW(i);
 }

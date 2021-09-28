@@ -11,6 +11,7 @@ GraphicScene::GraphicScene(QObject *parent)
       pen_w(2)
 {
     m_color = Qt::black;
+    m_font = QFont("Times", 12, QFont::Black);
 }
 
 GraphicScene::~GraphicScene(){
@@ -122,10 +123,11 @@ void GraphicScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
             TextEdit * text = new TextEdit();
             if(text == nullptr) return;//异常，不作处理
             m_sharp = qgraphicsitem_cast<TextEdit *>(text);
+            text->setFont(m_font);
+            text->setDefaultTextColor(m_color);
             addItem(m_sharp);
             text->setPos(ev->scenePos());
             text->setFocus();
-
         }
         if(m_sharp != nullptr)
             emit itemAddSignal(qgraphicsitem_cast<QGraphicsItem *>(m_sharp));
@@ -149,4 +151,9 @@ void GraphicScene::setPenW(int w)
 void GraphicScene::setColor(QColor &c)
 {
     m_color = c;
+}
+
+void GraphicScene::setFont(QFont &font)
+{
+    m_font = font;
 }
