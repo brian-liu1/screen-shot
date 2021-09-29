@@ -292,28 +292,51 @@ void ScreenWidget::saveFullOther()
         fullScreen->save(fileName, "png");
         close();
     }
+
 }
 
 void ScreenWidget::mouseMoveEvent(QMouseEvent *e)
 {
     if (screen->getStatus() == Screen::SELECT) {
         screen->setEnd(e->pos());
+        this->update();
     }
-//    else if (screen->getStatus() == Screen::MOV) {
-//        QPoint p(e->x() - movPos.x(), e->y() - movPos.y());
-//        screen->move(p);
-//        movPos = e->pos();
-//    }
-
-    this->update();
+    else if (screen->getStatus() == Screen::EDIT) {
+        QPoint p = e->globalPos() - movPos;
+        widget->move(p);
+        int x = screen->getLeftUp().x();
+        int y = screen->getLeftUp().y();
+        int w = screen->getRightDown().x() - x;
+        int h = screen->getRightDown().y() - y;
+        QPixmap pmap = fullScreen->copy(x, y, w, h);
+        QGraphicsPixmapItem * item = m_scene->addPixmap(pmap);
+        item->setPos(QPointF(-w/2, -h/2));
+        m_scene->removeItem(bg_item);
+        delete bg_item;
+        bg_item = item;
+        movPos = e->globalPos() - widget->pos();
+        screen->setStart(QPoint(widget->pos().x(), widget->pos().y()));
+        screen->setEnd(QPoint(widget->pos().x() + widget->width(), widget->pos().y() +widget->height() - 80));
+        this->update();
+    }
 }
 
 void ScreenWidget::mousePressEvent(QMouseEvent *e)
 {
+    int i = 0;
     int status = screen->getStatus();
 
     if (status == Screen::SELECT) {
         screen->setStart(e->pos());
+        this->update();
+    }
+    else if (status == Screen::EDIT) {
+        if (screen->isInArea(e->pos()) == true) {
+            return;
+        } else {
+            movPos = e->globalPos() - widget->pos();
+            this->setCursor(Qt::SizeAllCursor);
+        }
     }
 //    else if (status == Screen::MOV) {
 //        if (screen->isInArea(e->pos()) == false) {
@@ -325,18 +348,20 @@ void ScreenWidget::mousePressEvent(QMouseEvent *e)
 //        }
 //    }
 
-    this->update();
+
 }
 
-void ScreenWidget::mouseReleaseEvent(QMouseEvent *)
+void ScreenWidget::mouseReleaseEvent(QMouseEvent * e)
 {
     if (screen->getStatus() == Screen::SELECT) {
+        if(screen->getStart() == e->pos())
+            return;
         screen->setStatus(Screen::EDIT);
         initView();
     }
-//    else if (screen->getStatus() == Screen::MOV) {
-//        this->setCursor(Qt::ArrowCursor);
-//    }
+    else if (screen->getStatus() == Screen::EDIT) {
+        this->setCursor(Qt::ArrowCursor);
+    }
 }
 
 void ScreenWidget::contextMenuEvent(QContextMenuEvent * ev)
@@ -354,6 +379,7 @@ void ScreenWidget::contextMenuEvent(QContextMenuEvent * ev)
     }
     else
         m_scene->setToolType(0);
+    QWidget::contextMenuEvent(ev);
 }
 
 void ScreenWidget::initView()
@@ -371,8 +397,8 @@ void ScreenWidget::initView()
     m_scene->setSceneRect(QRectF(-w/2, -h/2, w, h));
     m_scene->update();
     m_view->setScene(m_scene);
-    QGraphicsPixmapItem * item = m_scene->addPixmap(pmap); // add scene background pixmap
-    item->setPos(QPointF(-w/2, -h/2));
+    bg_item = m_scene->addPixmap(pmap); // add scene background pixmap
+    bg_item->setPos(QPointF(-w/2, -h/2));
     m_view->setFocus();
     m_view->show();
     layout = new QVBoxLayout();
@@ -432,12 +458,15 @@ void ScreenWidget::initView()
     connect(quit, &QPushButton::clicked, this, &ScreenWidget::close);
     QSpacerItem * space = new QSpacerItem(20, 40, QSizePolicy::Expanding);
     m_layout->addSpacerItem(space);
-    m_layout->addWidget(line);
-    m_layout->addWidget(rect);
-    m_layout->addWidget(text);
-    m_layout->addWidget(undo);
-    m_layout->addWidget(redo);
-    m_layout->addWidget(save);
+    if(w > 280)
+    {
+        m_layout->addWidget(line);
+        m_layout->addWidget(rect);
+        m_layout->addWidget(text);
+        m_layout->addWidget(undo);
+        m_layout->addWidget(redo);
+        m_layout->addWidget(save);
+    }
     m_layout->addWidget(quit);
     QHBoxLayout *m_tool = new QHBoxLayout();
     m_tool->setMargin(0);
@@ -476,8 +505,9 @@ void ScreenWidget::initView()
     layout->addItem(m_layout);
     layout->addItem(m_tool);
     setLayoutVisible(0);
-    QWidget * widget = new QWidget(this);
-    widget->setAttribute(Qt::WA_TranslucentBackground, true);
+    widget = new QWidget(this);
+    widget->setWindowFlag(Qt::FramelessWindowHint);
+    //widget->setAttribute(Qt::WA_TranslucentBackground, true);
     layout->setMargin(0);
     layout->setSpacing(0);
     widget->setLayout(layout);
@@ -587,4 +617,9 @@ void ScreenWidget::sizeChange(int)
 {
     int i= m_combox->itemData(m_combox->currentIndex()).toInt();
     m_scene->setPenW(i);
+}
+
+void ScreenWidget::close()
+{
+    this->deleteLater();
 }

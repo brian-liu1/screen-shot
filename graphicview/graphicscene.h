@@ -23,10 +23,14 @@ signals:
     void itemMoveSignal(QGraphicsItem * p, QPointF pos);
     void itemAddSignal(QGraphicsItem * p);
 
+private slots:
+    void checkText(void);
+
 private:
     QPixmap * m_pixmap;
     int m_toolType;
     QGraphicsItem * m_sharp;
+    QGraphicsItem * m_textedit;
     QGraphicsItem * m_Item;
     QColor  m_color;
     int pen_w;

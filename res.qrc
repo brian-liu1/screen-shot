@@ -9,5 +9,7 @@
         <file>undo.png</file>
         <file>font.png</file>
         <file>save.png</file>
+        <file>logo.png</file>
+        <file>cut.png</file>
     </qresource>
 </RCC>

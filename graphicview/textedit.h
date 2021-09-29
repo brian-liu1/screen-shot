@@ -14,6 +14,7 @@
 
 class TextEdit :public QGraphicsTextItem
 {
+    Q_OBJECT
 public:
     TextEdit();
     ~TextEdit();
@@ -21,7 +22,8 @@ public:
     int type() const{
         return  Type;
     }
-
+signals:
+    void editEnd(void);
 protected:
     void focusInEvent(QFocusEvent * event);
     void focusOutEvent(QFocusEvent * event);

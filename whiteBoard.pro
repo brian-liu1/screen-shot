@@ -35,7 +35,8 @@ SOURCES += main.cpp \
         graphicview/myline.cpp \
         graphicview/myrect.cpp \
         graphicview/textedit.cpp \
-        command/mycommand.cpp
+        command/mycommand.cpp \
+        mybutton.cpp
 
 HEADERS += window/widget.h \
            window/screenwidget.h \
@@ -44,7 +45,8 @@ HEADERS += window/widget.h \
            graphicview/myline.h \
            graphicview/myrect.h \
            graphicview/textedit.h \
-           command/mycommand.h
+           command/mycommand.h \
+           mybutton.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -53,3 +55,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 RESOURCES += \
     res.qrc
+
+RC_FILE = logo.rc
+

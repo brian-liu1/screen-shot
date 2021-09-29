@@ -39,25 +39,9 @@ void TextEdit::focusInEvent(QFocusEvent *event)
 
 void TextEdit::focusOutEvent(QFocusEvent *event)
 {
-   if(event->reason() == Qt::MouseFocusReason && QApplication::mouseButtons()==Qt::RightButton)
-   {
-      //右键点击其他地方失去焦点，定义为取消操作，恢复原始文本
-       setPlainText(m_store_str);
-       setTextInteractionFlags(Qt::NoTextInteraction);//恢复不能编辑状态
-       //emit EditStatus(false);//编辑完成(发送信号出去)
-       clearFocus();
-
-   }
-   else if(event->reason() == Qt::PopupFocusReason)
-   {
-  //右键弹出菜单时不做处理
-   }
-   else
-   {  //其他情况，包括下面点击回车的情况，编辑成功，发送信号给父对象
-        setTextInteractionFlags(Qt::NoTextInteraction);
-        //emit EditStatus(false);//编辑完成(发送信号出去)
-   }
-   QGraphicsTextItem::focusOutEvent(event);
+    setTextInteractionFlags(Qt::NoTextInteraction);
+    emit editEnd();//编辑完成(发送信号出去)
+    QGraphicsTextItem::focusOutEvent(event);
 }
 
 void TextEdit::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)

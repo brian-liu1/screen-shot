@@ -122,15 +122,25 @@ void GraphicScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
         {
             TextEdit * text = new TextEdit();
             if(text == nullptr) return;//异常，不作处理
+            connect(text, &TextEdit::editEnd, this, &GraphicScene::checkText);
             m_sharp = qgraphicsitem_cast<TextEdit *>(text);
             text->setFont(m_font);
             text->setDefaultTextColor(m_color);
             addItem(m_sharp);
             text->setPos(ev->scenePos());
             text->setFocus();
+            m_textedit = m_sharp;
         }
-        if(m_sharp != nullptr)
-            emit itemAddSignal(qgraphicsitem_cast<QGraphicsItem *>(m_sharp));
+        if(m_sharp != nullptr && m_toolType != 3){
+            if(m_sharp->boundingRect().width() > 0 || m_sharp->boundingRect().height() > 0)
+            {
+                emit itemAddSignal(qgraphicsitem_cast<QGraphicsItem *>(m_sharp));
+
+            }
+            else {
+                removeItem(m_sharp);
+            }
+        }
         setToolType(0);
         ev->accept();
     }
@@ -139,6 +149,7 @@ void GraphicScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
             if(m_oldPos != m_Item->pos())
                 emit itemMoveSignal(qgraphicsitem_cast<QGraphicsItem *>(m_Item), m_oldPos);
         }
+        qDebug()<<"secen realse";
        QGraphicsScene::mouseReleaseEvent(ev);
     }
 }
@@ -156,4 +167,17 @@ void GraphicScene::setColor(QColor &c)
 void GraphicScene::setFont(QFont &font)
 {
     m_font = font;
+}
+
+void GraphicScene::checkText(void)
+{
+    if(m_textedit != nullptr)
+    {
+        TextEdit * text = qgraphicsitem_cast<TextEdit *>(m_textedit);
+        if(text->toPlainText().isEmpty())
+            removeItem(m_textedit);
+        else {
+            emit itemAddSignal(qgraphicsitem_cast<QGraphicsItem *>(m_textedit));
+        }
+    }
 }

@@ -29,7 +29,11 @@ public:
 protected:
     QRectF  boundingRect() const;
     void    paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-
+    void    hoverEnterEvent(QGraphicsSceneHoverEvent *event);
+    void    hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
+    void    mousePressEvent(QGraphicsSceneMouseEvent *event);
+    void    mouseMoveEvent(QGraphicsSceneMouseEvent *event);
+    void    mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
 private:
     QPointF m_start;
     QPointF m_next;
@@ -39,7 +43,7 @@ private:
     QColor m_strokeColor;//线段颜色
     QPainterPath path;
     QPointF m_topLeftInScene;
-
+    bool hasHover;
 };
 
 #endif // MYRECT_H

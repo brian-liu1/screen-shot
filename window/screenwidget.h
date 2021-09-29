@@ -79,6 +79,8 @@ private:
     QPushButton * font;
     QPushButton * color;
     QComboBox *m_combox;
+    QWidget * widget;
+    QGraphicsPixmapItem * bg_item;
 
 protected:
     void contextMenuEvent(QContextMenuEvent *);
@@ -87,6 +89,7 @@ protected:
     void mouseReleaseEvent(QMouseEvent *);
     void paintEvent(QPaintEvent *);
     void showEvent(QShowEvent *);
+    void close();
 
 private:
     void initView(void);
