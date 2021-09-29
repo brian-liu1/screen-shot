@@ -12,6 +12,15 @@
 #include <QGraphicsSceneWheelEvent>
 #include <QGraphicsItem>
 
+enum STATE_FLAG{
+     DEFAULT_FLAG=0,
+     MOV_LEFT_LINE,//标记当前为用户按下矩形的左边界区域
+     MOV_TOP_LINE,//标记当前为用户按下矩形的上边界区域
+     MOV_RIGHT_LINE,//标记当前为用户按下矩形的右边界区域
+     MOV_BOTTOM_LINE,//标记当前为用户按下矩形的下边界区域
+     MOV_RECT,//标记当前为鼠标拖动图片移动状态
+ };
+
 class MyRect: public QGraphicsItem
 {
 public:
@@ -25,7 +34,8 @@ public:
     int type() const{
         return  Type;
     }
-
+    void setRectSize(QRectF mrect );
+    QPolygonF setPolyRect(QPointF & pos, int radius);
 protected:
     QRectF  boundingRect() const;
     void    paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
@@ -44,6 +54,15 @@ private:
     QPainterPath path;
     QPointF m_topLeftInScene;
     bool hasHover;
+    QRectF m_oldRect;
+    QPolygonF m_leftpoly;
+    QPolygonF m_rightpoly;
+    QPolygonF m_toppoly;
+    QPolygonF m_bottompoly;
+    STATE_FLAG  m_StateFlag;
+    qreal m_width;
+    qreal m_height;
+
 };
 
 #endif // MYRECT_H

@@ -134,7 +134,7 @@ void GraphicScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
         if(m_sharp != nullptr && m_toolType != 3){
             if(m_sharp->boundingRect().width() > 0 || m_sharp->boundingRect().height() > 0)
             {
-                emit itemAddSignal(qgraphicsitem_cast<QGraphicsItem *>(m_sharp));
+               // emit itemAddSignal(qgraphicsitem_cast<QGraphicsItem *>(m_sharp));
 
             }
             else {

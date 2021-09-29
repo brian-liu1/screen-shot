@@ -181,6 +181,7 @@ ScreenWidget::ScreenWidget(QWidget *parent) : QWidget(parent)
     //保存全屏图像
     fullScreen = new QPixmap();
     setAttribute(Qt::WA_DeleteOnClose);
+    //setAttribute(Qt::WA_TranslucentBackground, true);
 }
 
 ScreenWidget::~ScreenWidget(){
@@ -311,6 +312,7 @@ void ScreenWidget::mouseMoveEvent(QMouseEvent *e)
         QPixmap pmap = fullScreen->copy(x, y, w, h);
         QGraphicsPixmapItem * item = m_scene->addPixmap(pmap);
         item->setPos(QPointF(-w/2, -h/2));
+        item->setZValue(-1);
         m_scene->removeItem(bg_item);
         delete bg_item;
         bg_item = item;
