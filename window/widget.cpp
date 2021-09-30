@@ -57,6 +57,7 @@ void Widget::initBoard()
 void Widget::shotScreen()
 {
     ScreenWidget * screen = new ScreenWidget();
+    screen->setGeometry(50, 50, 720, 640);
     screen->show();
 }
 

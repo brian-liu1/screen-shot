@@ -24,6 +24,7 @@ public:
     }
 signals:
     void editEnd(void);
+
 protected:
     void focusInEvent(QFocusEvent * event);
     void focusOutEvent(QFocusEvent * event);

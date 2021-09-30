@@ -36,7 +36,8 @@ SOURCES += main.cpp \
         graphicview/myrect.cpp \
         graphicview/textedit.cpp \
         command/mycommand.cpp \
-        mybutton.cpp
+        mybutton.cpp \
+    graphicview/colorbar.cpp
 
 HEADERS += window/widget.h \
            window/screenwidget.h \
@@ -46,7 +47,8 @@ HEADERS += window/widget.h \
            graphicview/myrect.h \
            graphicview/textedit.h \
            command/mycommand.h \
-           mybutton.h
+           mybutton.h \
+    graphicview/colorbar.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

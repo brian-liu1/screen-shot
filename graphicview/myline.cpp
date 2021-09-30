@@ -22,6 +22,7 @@ QRectF  MyLine::boundingRect() const
 
 void MyLine::paint(QPainter *painter, const QStyleOptionGraphicsItem * option, QWidget * widget)
 {
+    painter->setRenderHint(QPainter::Antialiasing);
     painter->save();
     painter->setPen(m_pen);
     QPainterPath path_ = path.translated(-m_topLeftInScene);
@@ -43,6 +44,7 @@ void MyLine::setEndPoint(const QPointF &pos)
     m_topLeftInScene = m_rcBounding.topLeft();
     setPos(m_topLeftInScene);
     m_rcBounding.moveTo(0, 0);//本地坐标
+    prepareGeometryChange();
 }
 
 void MyLine::setStrokeWidth(float w){

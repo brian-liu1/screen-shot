@@ -22,18 +22,17 @@ MyRect::~MyRect()
 QRectF  MyRect::boundingRect() const
 {
     if(!hasHover)
-        return m_rcBounding;
+        return QRectF(m_rcBounding.x() - 20, m_rcBounding.y() - 20, m_rcBounding.width() + 40, m_rcBounding.height() + 40);
     else {
-        return QRectF(m_rcBounding.x() - 4, m_rcBounding.y() - 4, m_rcBounding.width() + 8, m_rcBounding.height() + 8);
+        return QRectF(m_rcBounding.x() - 24, m_rcBounding.y() - 24, m_rcBounding.width() + 48, m_rcBounding.height() + 48);
     }
 }
 
 void MyRect::paint(QPainter *painter, const QStyleOptionGraphicsItem * option, QWidget * widget)
 {
+    painter->setRenderHint(QPainter::Antialiasing);
     painter->save();
     painter->setPen(m_pen);
-    //QPainterPath path_ = path.translated(-m_topLeftInScene);
-    //painter->drawRect(path_.boundingRect());
     painter->drawRect(m_rcBounding);
     if(hasHover)
     {
@@ -48,12 +47,6 @@ void MyRect::paint(QPainter *painter, const QStyleOptionGraphicsItem * option, Q
         painter->drawEllipse(QPointF(m_rcBounding.x() + m_rcBounding.width() , m_rcBounding.y() + m_rcBounding.height() / 2), 4, 4);
         painter->drawEllipse(QPointF(m_rcBounding.x() + m_rcBounding.width() / 2 , m_rcBounding.y() + m_rcBounding.height()), 4, 4);
         painter->drawEllipse(QPointF(m_rcBounding.x() + m_rcBounding.width() / 2 , m_rcBounding.y()), 4, 4);
-        pen.setColor(Qt::yellow);
-        painter->setPen(pen);
-        painter->drawPolygon(m_leftpoly);
-        painter->drawPolygon(m_rightpoly);
-        painter->drawPolygon(m_toppoly);
-        painter->drawPolygon(m_bottompoly);
     }
     painter->restore();
 }
@@ -71,8 +64,12 @@ void MyRect::setEndPoint(const QPointF &pos)
     path_.moveTo(m_start);
     path_.lineTo(pos);
     m_rcBounding = path_.boundingRect();
+    m_topLeftInScene = m_rcBounding.topLeft();
+    setPos(m_topLeftInScene);
     m_rcBounding.moveTo(0, 0);//本地坐标
     setRectSize(m_rcBounding);
+    prepareGeometryChange();
+
 }
 
 void MyRect::setStrokeWidth(int w){
@@ -97,6 +94,7 @@ void MyRect::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
     Q_UNUSED(event);
     hasHover = false;
+    setCursor(Qt::ArrowCursor);
     prepareGeometryChange();
 }
 
@@ -105,20 +103,71 @@ void MyRect::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     if(m_StateFlag == MOV_LEFT_LINE)
     {
         QPainterPath path_;
-        path_.moveTo(m_start);
-        QPointF pos = QPointF(mapToScene(event->pos()).x(), m_height);
-        path_.lineTo(pos);
-        m_rcBounding = path_.boundingRect();
-        setRectSize(m_rcBounding);
-        prepareGeometryChange();
-        //qDebug()<<m_rcBounding;
+        qreal delt_x = event->pos().x() - m_start.x();
+        QPointF tl = QPointF(delt_x, 0);
+        QPointF current = this->pos();
+        path_.moveTo(tl);
+        path_.lineTo(m_rcBounding.bottomRight());
+        if(delt_x < m_rcBounding.bottomRight().x() - 1)
+        {
+            m_rcBounding = path_.boundingRect();
+            m_rcBounding.moveTo(0, 0);
+            prepareGeometryChange();
+            setPos(current.x() + delt_x, current.y());
+            setRectSize(m_rcBounding);
+        }
+    }
+    else if(m_StateFlag == MOV_RIGHT_LINE)
+    {
+        QPainterPath path_;
+        qreal delt_x = event->pos().x() - m_start.x();
+        QPointF tr = QPointF(delt_x + m_rcBounding.topRight().x(), 0);
+        if(tr.x() > 1)
+        {
+            path_.moveTo(tr);
+            path_.lineTo(m_rcBounding.bottomLeft());
+            m_rcBounding = path_.boundingRect();
+            prepareGeometryChange();
+            setRectSize(m_rcBounding);
+            m_start = event->pos();
+        }
+    }
+    else if(m_StateFlag == MOV_TOP_LINE)
+    {
+        QPainterPath path_;
+        qreal delt_y = event->pos().y() - m_start.y();
+        QPointF tl = QPointF(0, delt_y);
+        QPointF current = this->pos();
+        path_.moveTo(tl);
+        path_.lineTo(m_rcBounding.bottomRight());
+        if(delt_y < m_rcBounding.bottomRight().y() - 1)
+        {
+            m_rcBounding = path_.boundingRect();
+            m_rcBounding.moveTo(0, 0);
+            prepareGeometryChange();
+            setPos(current.x(), current.y() + delt_y);
+            setRectSize(m_rcBounding);
+        }
+    }
+    else if(m_StateFlag == MOV_BOTTOM_LINE)
+    {
+        QPainterPath path_;
+        qreal delt_y = event->pos().y() - m_start.y();
+        QPointF br = QPointF(m_rcBounding.bottomRight().x(), delt_y + m_rcBounding.bottomRight().y());
+        if(br.y() > 1)
+        {
+            path_.moveTo(br);
+            path_.lineTo(m_rcBounding.topLeft());
+            m_rcBounding = path_.boundingRect();
+            prepareGeometryChange();
+            setRectSize(m_rcBounding);
+            m_start = event->pos();
+        }
     }
     else if(m_StateFlag == MOV_RECT)
     {
         QPointF pos = event->pos() - m_start;
         moveBy(pos.x(), pos.y());
-        //qDebug()<<event->pos();
-        //prepareGeometryChange();
     }
     //QGraphicsItem::mouseMoveEvent(event);
 }
@@ -131,26 +180,26 @@ void MyRect::mousePressEvent(QGraphicsSceneMouseEvent *event)
     if(m_leftpoly.containsPoint(pos, Qt::WindingFill))
     {
         m_StateFlag = MOV_LEFT_LINE;
-        m_start = QPointF(this->pos().x() + m_rcBounding.width(), this->pos().y() + m_rcBounding.height());
+        m_start = pos;
         m_height = m_rcBounding.height();
         setCursor(Qt::SizeHorCursor);
     }
     else if(m_rightpoly.containsPoint(pos, Qt::WindingFill))
     {
         m_StateFlag = MOV_RIGHT_LINE;
-        m_start = QPointF(this->pos().x() + m_rcBounding.width(), this->pos().y() + m_rcBounding.height());
+        m_start = pos;
         setCursor(Qt::SizeHorCursor);
     }
     else if(m_toppoly.containsPoint(pos, Qt::WindingFill))
     {
         m_StateFlag = MOV_TOP_LINE;
-        m_start = m_rcBounding.bottomLeft();
+        m_start = pos;
         setCursor(Qt::SizeVerCursor);
     }
     else if(m_bottompoly.containsPoint(pos, Qt::WindingFill))
     {
         m_StateFlag = MOV_BOTTOM_LINE;
-        m_start = m_rcBounding.topLeft();
+        m_start = m_start = pos;
         setCursor(Qt::SizeVerCursor);
     }
     else if(m_rcBounding.contains(pos))
@@ -158,7 +207,6 @@ void MyRect::mousePressEvent(QGraphicsSceneMouseEvent *event)
         m_StateFlag = MOV_RECT;
         m_start = pos;
         setCursor(Qt::OpenHandCursor);
-        qDebug()<<m_start<<pos<<this->pos()<<mapToScene(pos);
     }
     //QGraphicsItem::mousePressEvent(event);
 }

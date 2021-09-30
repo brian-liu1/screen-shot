@@ -3,6 +3,7 @@
 
 #include <QGraphicsScene>
 #include <QGraphicsItem>
+#include <colorbar.h>
 
 class GraphicScene: public QGraphicsScene
 {
@@ -25,6 +26,7 @@ signals:
 
 private slots:
     void checkText(void);
+    void checkColor(int);
 
 private:
     QPixmap * m_pixmap;
@@ -36,6 +38,7 @@ private:
     int pen_w;
     QPointF m_oldPos;
     QFont m_font;
+    ColorBar * bar;
 
 };
 

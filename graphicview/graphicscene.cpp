@@ -5,10 +5,12 @@
 #include <graphicview/myline.h>
 #include <graphicview/myrect.h>
 #include <graphicview/textedit.h>
+#include <graphicview/colorbar.h>
 
 GraphicScene::GraphicScene(QObject *parent)
     : QGraphicsScene(parent),
-      pen_w(2)
+      pen_w(2),
+      bar(nullptr)
 {
     m_color = Qt::black;
     m_font = QFont("Times", 12, QFont::Black);
@@ -42,7 +44,18 @@ void GraphicScene::setToolType(int type){
 
 void GraphicScene::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 {
-    if(ev->button() != Qt::LeftButton) return;
+    if(ev->button() != Qt::LeftButton)
+    {
+        if(ev->button() == Qt::RightButton)
+        {
+            bar = new ColorBar();
+            bar->setPos(QPointF(ev->scenePos().x() - DELAT_X, ev->scenePos().y() - DELAT_X));
+            addItem(bar);
+            connect(bar, &ColorBar::colorIndex, this, &GraphicScene::checkColor);
+        }
+        QGraphicsScene::mousePressEvent(ev);
+        return;
+    }
     if(m_toolType > 0)
     {
         switch (m_toolType) {
@@ -84,6 +97,14 @@ void GraphicScene::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 
 void GraphicScene::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
 {
+
+    if(ev->buttons() & Qt::RightButton)
+    {
+        QGraphicsScene::mouseMoveEvent(ev);
+        return;//只处理鼠标左键
+    }
+
+
     if(m_toolType > 0 && m_sharp)
     {
         switch (m_toolType) {
@@ -115,7 +136,15 @@ void GraphicScene::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
 
 void GraphicScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 {
-    if(ev->button() != Qt::LeftButton) return;//只处理鼠标左键
+    if(ev->button() != Qt::LeftButton)
+    {
+        if(ev->button() == Qt::RightButton)
+        {
+
+            QGraphicsScene::mouseReleaseEvent(ev);
+        }
+        return;//只处理鼠标左键
+    }
     if(m_toolType > 0)
     {
         if(m_toolType == 3)
@@ -134,7 +163,7 @@ void GraphicScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
         if(m_sharp != nullptr && m_toolType != 3){
             if(m_sharp->boundingRect().width() > 0 || m_sharp->boundingRect().height() > 0)
             {
-               // emit itemAddSignal(qgraphicsitem_cast<QGraphicsItem *>(m_sharp));
+                emit itemAddSignal(qgraphicsitem_cast<QGraphicsItem *>(m_sharp));
 
             }
             else {
@@ -149,7 +178,6 @@ void GraphicScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
             if(m_oldPos != m_Item->pos())
                 emit itemMoveSignal(qgraphicsitem_cast<QGraphicsItem *>(m_Item), m_oldPos);
         }
-        qDebug()<<"secen realse";
        QGraphicsScene::mouseReleaseEvent(ev);
     }
 }
@@ -179,5 +207,24 @@ void GraphicScene::checkText(void)
         else {
             emit itemAddSignal(qgraphicsitem_cast<QGraphicsItem *>(m_textedit));
         }
+    }
+}
+
+void GraphicScene::checkColor(int i)
+{
+    QVector<QColor> mycolor;
+    mycolor<<Qt::gray<<Qt::red<<Qt::green<<Qt::yellow<<Qt::cyan<<Qt::black<<Qt::magenta<<Qt::blue;
+    if(i > 0)
+    {
+        QColor c = mycolor.at(i);
+        setColor(c);
+    }
+    if(bar != nullptr)
+    {
+        disconnect(bar, &ColorBar::colorIndex, this, &GraphicScene::checkColor);
+        removeItem(bar);
+        update();
+        delete bar;
+        bar = nullptr;
     }
 }
