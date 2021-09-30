@@ -58,7 +58,7 @@ void Widget::shotScreen()
 {
     ScreenWidget * screen = new ScreenWidget();
     screen->setGeometry(50, 50, 720, 640);
-    screen->show();
+    screen->showFullScreen();
 }
 
 bool Widget::nativeEvent(const QByteArray &eventType, void *message, long *result)
